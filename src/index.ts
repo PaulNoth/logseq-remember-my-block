@@ -4,7 +4,7 @@ import { logseqModelCheck } from './logseqModelCheck'
 import { settingsTemplate } from './settings'
 import { loadLogseqL10n } from './translations/l10nSetup'
 
-export const PLUGIN_ID = 'logseq-plugin-template-typescript' // Plugin ID
+export const PLUGIN_ID = 'logseq-remeber-my-block' // Plugin ID
 export const consoleText = PLUGIN_ID + " :: "
 
 // Variables (used within the same module, not exported)
@@ -19,6 +19,94 @@ export const replaceLogseqMdModel = (mdModel: boolean) => logseqMdModel = mdMode
 
 export const booleanDbGraph = () => logseqDbGraph // For DB graph checking
 export const replaceLogseqDbGraph = (dbGraph: boolean) => logseqDbGraph = dbGraph
+
+const STORAGE_KEY = 'last-block-position'
+
+type LastPosition = {
+  pageName: string
+  blockUuid: string
+  charOffset: number
+  updatedAt: number
+}
+
+type LastPositionMap = {
+  [pageName: string]: LastPosition
+}
+
+function debounce<T extends (...args: any[]) => void>(fn: T, delay = 1000) {
+  let timer: number | null = null
+  return (...args: Parameters<T>) => {
+    if (timer != null) window.clearTimeout(timer)
+    timer = window.setTimeout(() => {
+      fn(...args)
+    }, delay)
+  }
+}
+
+async function loadPositions(): Promise<LastPositionMap> {
+  const stored = await logseq.App.getStateFromStore(STORAGE_KEY) as LastPositionMap | null
+  return stored ?? {}
+}
+
+async function savePositions(map: LastPositionMap) {
+  await logseq.App.setStateFromStore(STORAGE_KEY, map)
+}
+
+async function recordCurrentPosition() {
+  const block = await logseq.Editor.getCurrentBlock()
+  if (!block) return
+
+  const page = await logseq.Editor.getPage(block.page.id)
+  if (!page) return
+
+  const pos: LastPosition = {
+    pageName: page.name,
+    blockUuid: block.uuid,
+    charOffset: 0, // later: track real cursor offset
+    updatedAt: Date.now(),
+  }
+
+  const map = await loadPositions()
+  map[page.name] = pos
+  await savePositions(map)
+}
+
+const debouncedRecordPosition = debounce(recordCurrentPosition, 1500) // 1.5s after last event
+
+let polling = false
+
+async function startPolling() {
+  if (polling) return
+  polling = true
+
+  while (polling) {
+    const block = await logseq.Editor.getCurrentBlock()
+    if (block) {
+      debouncedRecordPosition()
+    }
+    await new Promise(res => setTimeout(res, 1000)) // poll every second
+  }
+}
+
+function stopPolling() {
+  polling = false
+}
+
+async function restorePositionForCurrentPage() {
+  const route = await logseq.App.getCurrentRoute()
+  if (route?.page?.['name'] == null) return
+
+  const pageName = route.page['name'] as string
+  const map = await loadPositions()
+  const pos = map[pageName]
+  if (!pos) return
+
+  const block = await logseq.Editor.getBlock(pos.blockUuid)
+  if (!block) return
+
+  await logseq.Editor.scrollToBlockInPage(block.uuid)
+  await logseq.Editor.editBlock(block.uuid)
+}
 
 
 /* main */
@@ -64,13 +152,13 @@ const main = async () => {
   logseq.UI.showMsg(t("Hello!!"), "success", { timeout: 6000 }) //test
   console.log(t("Hello!!")) // test
 
+  logseq.App.onRouteChanged(async () => {
+    await restorePositionForCurrentPage()
+    await startPolling()
+  })
+
+  window.addEventListener('beforeunload', stopPolling)
+}
 
 
-  /**
-   * Freespace
-   */
-
-
-
-}/* end_main */
 logseq.ready(main).catch(console.error)
