@@ -54,10 +54,16 @@ async function savePositions(map: LastPositionMap) {
 
 async function recordCurrentPosition() {
   const block = await logseq.Editor.getCurrentBlock()
+  // console.log('Remember my block, recordCurrentPosition, block: ', block?.uuid)
   if (!block) return
 
   const page = await logseq.Editor.getPage(block.page.id)
+  // console.log('Remember my block, recordCurrentPosition, page: ', page?.id)
+  // console.log('Remember my block, recordCurrentPosition, page: ', page?.name)
   if (!page) return
+
+  // console.log('Remember my block, recordCurrentPosition, page id ', page.id)
+  // console.log('Remember my block, recordCurrentPosition, page name ', page.name)
 
   const pos: LastPosition = {
     pageName: page.name,
@@ -67,6 +73,8 @@ async function recordCurrentPosition() {
   }
 
   const map = await loadPositions()
+  // console.log('Remember my block, recordCurrentPosition, map:', map)
+  // console.log('Remember my block, recordCurrentPosition, map:', JSON.stringify(map))
   map[page.name] = pos
   await savePositions(map)
 }
@@ -76,11 +84,13 @@ const debouncedRecordPosition = debounce(recordCurrentPosition, 1500) // 1.5s af
 let polling = false
 
 async function startPolling() {
+  // console.log('Remember my block, start polling')
   if (polling) return
   polling = true
 
   while (polling) {
     const block = await logseq.Editor.getCurrentBlock()
+    // console.log('Remember my block, start polling, block id', block?.uuid)
     if (block) {
       debouncedRecordPosition()
     }
@@ -93,18 +103,34 @@ function stopPolling() {
 }
 
 async function restorePositionForCurrentPage() {
-  const route = await logseq.App.getCurrentRoute()
-  if (route?.page?.['name'] == null) return
+  // const route = await logseq.App.getCurrentRoute()
+  // if (route?.page?.['name'] == null) return
+  // const pageName = route.page['name'] as string
 
-  const pageName = route.page['name'] as string
+  // const block = await logseq.Editor.getCurrentBlock()
+  // if (!block) return
+
+  // const page = await logseq.Editor.getPage(block.page.id)
+  // if (!page) return
+
+  const page = await logseq.Editor.getCurrentPage();
+  const pageName = page?.name as string;
+  if (!pageName) {
+    return;
+  }
+  // console.log('Remember my block, page name: ', pageName)
+
   const map = await loadPositions()
   const pos = map[pageName]
+  // console.log('Remember my block, restorePositionForCurrentPage, position: ', pos)
+  // console.log('Remember my block, restorePositionForCurrentPage, position: ', JSON.stringify(pos))
   if (!pos) return
 
   const block = await logseq.Editor.getBlock(pos.blockUuid)
   if (!block) return
+  // console.log('Remember my block, restorePositionForCurrentPage, block: ', pos.blockUuid)
 
-  await logseq.Editor.scrollToBlockInPage(block.uuid)
+  await logseq.Editor.scrollToBlockInPage(pageName, block.uuid)
   await logseq.Editor.editBlock(block.uuid)
 }
 
@@ -153,6 +179,7 @@ const main = async () => {
   console.log(t("Hello!!")) // test
 
   logseq.App.onRouteChanged(async () => {
+    // console.log("Remember my block: route changed")
     await restorePositionForCurrentPage()
     await startPolling()
   })
