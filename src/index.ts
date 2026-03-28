@@ -43,6 +43,12 @@ function debounce<T extends (...args: any[]) => void>(fn: T, delay = 1000) {
   }
 }
 
+// getStateFromStore camelCases keys with spaces (e.g. "weekly wins" → "weeklyWins"),
+// so we encode page names before using them as map keys.
+function pageKey(pageName: string): string {
+  return encodeURIComponent(pageName.toLowerCase())
+}
+
 async function loadPositions(): Promise<LastPositionMap> {
   const stored = await logseq.App.getStateFromStore(STORAGE_KEY) as LastPositionMap | null
   return stored ?? {}
@@ -52,54 +58,44 @@ async function savePositions(map: LastPositionMap) {
   await logseq.App.setStateFromStore(STORAGE_KEY, map)
 }
 
-async function recordCurrentPosition() {
-  const block = await logseq.Editor.getCurrentBlock()
-  // console.log('Remember my block, recordCurrentPosition, block: ', block?.uuid)
+async function recordPositionForBlock(uuid: string) {
+  const block = await logseq.Editor.getBlock(uuid)
   if (!block) return
 
+  console.log('Remember my block', 'recordPositionForBlock', 'pageId', block.page.id)
+
   const page = await logseq.Editor.getPage(block.page.id)
-  // console.log('Remember my block, recordCurrentPosition, page: ', page?.id)
-  // console.log('Remember my block, recordCurrentPosition, page: ', page?.name)
   if (!page) return
 
-  // console.log('Remember my block, recordCurrentPosition, page id ', page.id)
-  // console.log('Remember my block, recordCurrentPosition, page name ', page.name)
-
+  const pageName = page.name.toLowerCase()
+  console.log('Remember my block', 'recordPositionForBlock', 'pageName', pageName)
   const pos: LastPosition = {
-    pageName: page.name,
+    pageName,
     blockUuid: block.uuid,
-    charOffset: 0, // later: track real cursor offset
+    charOffset: 0,
     updatedAt: Date.now(),
   }
 
   const map = await loadPositions()
-  // console.log('Remember my block, recordCurrentPosition, map:', map)
-  // console.log('Remember my block, recordCurrentPosition, map:', JSON.stringify(map))
-  map[page.name] = pos
+  console.log('Remember my block', 'recordPositionForBlock', 'map', map)
+  map[pageKey(pageName)] = pos
   await savePositions(map)
 }
 
-const debouncedRecordPosition = debounce(recordCurrentPosition, 1500) // 1.5s after last event
+const debouncedRecordPosition = debounce(recordPositionForBlock, 500)
 
-let polling = false
+function startBlockFocusTracking() {
+  const editorDoc = top?.document
+  if (!editorDoc) return
 
-async function startPolling() {
-  // console.log('Remember my block, start polling')
-  if (polling) return
-  polling = true
+  editorDoc.addEventListener('focusout', (e) => {
+    const target = e.target as HTMLElement
+    if (!target.matches('.block-editor textarea, .block-editor [contenteditable]')) return
 
-  while (polling) {
-    const block = await logseq.Editor.getCurrentBlock()
-    // console.log('Remember my block, start polling, block id', block?.uuid)
-    if (block) {
-      debouncedRecordPosition()
-    }
-    await new Promise(res => setTimeout(res, 1000)) // poll every second
-  }
-}
-
-function stopPolling() {
-  polling = false
+    const blockEl = target.closest('[blockid]')
+    const uuid = blockEl?.getAttribute('blockid')
+    if (uuid) debouncedRecordPosition(uuid)
+  }, true)
 }
 
 async function restorePositionForCurrentPage() {
@@ -113,24 +109,23 @@ async function restorePositionForCurrentPage() {
   // const page = await logseq.Editor.getPage(block.page.id)
   // if (!page) return
 
-  const page = await logseq.Editor.getCurrentPage();
-  const pageName = page?.name as string;
-  if (!pageName) {
-    return;
-  }
-  // console.log('Remember my block, page name: ', pageName)
+  const page = await logseq.Editor.getCurrentPage() as { name?: string } | null;
+  if (!page?.name) return;
+  const pageName = page.name.toLowerCase()
+  console.log('Remember my block', 'restorePositionForCurrentPage', 'pageName', pageName)
 
   const map = await loadPositions()
-  const pos = map[pageName]
-  // console.log('Remember my block, restorePositionForCurrentPage, position: ', pos)
+  const pos = map[pageKey(pageName)]
+  console.log('Remember my block, restorePositionForCurrentPage, position: ', pos)
   // console.log('Remember my block, restorePositionForCurrentPage, position: ', JSON.stringify(pos))
   if (!pos) return
 
   const block = await logseq.Editor.getBlock(pos.blockUuid)
+  console.log('Remember my block, restorePositionForCurrentPage, block: ', block)
   if (!block) return
-  // console.log('Remember my block, restorePositionForCurrentPage, block: ', pos.blockUuid)
+  console.log('Remember my block, restorePositionForCurrentPage, block: ', block)
 
-  await logseq.Editor.scrollToBlockInPage(pageName, block.uuid)
+  // await logseq.Editor.scrollToBlockInPage(pageName, block.uuid)
   await logseq.Editor.editBlock(block.uuid)
 }
 
@@ -175,16 +170,15 @@ const main = async () => {
    * logseq-l10n message sample
    * translations/ja.json
    */
-  logseq.UI.showMsg(t("Hello!!"), "success", { timeout: 6000 }) //test
-  console.log(t("Hello!!")) // test
+  logseq.UI.showMsg(t("Remember my block!!"), "success", { timeout: 6000 }) //test
+  console.log(t("Remember my block!!")) // test
+
+  startBlockFocusTracking()
 
   logseq.App.onRouteChanged(async () => {
-    // console.log("Remember my block: route changed")
     await restorePositionForCurrentPage()
-    await startPolling()
   })
 
-  window.addEventListener('beforeunload', stopPolling)
 }
 
 
