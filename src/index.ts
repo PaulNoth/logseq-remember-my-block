@@ -99,31 +99,40 @@ function startBlockFocusTracking() {
 }
 
 async function restorePositionForCurrentPage() {
-  // const route = await logseq.App.getCurrentRoute()
-  // if (route?.page?.['name'] == null) return
-  // const pageName = route.page['name'] as string
+  let pageName: string | undefined
 
-  // const block = await logseq.Editor.getCurrentBlock()
-  // if (!block) return
+  const page = await logseq.Editor.getCurrentPage() as { name?: string } | null
+  if (page?.name) {
+    pageName = page.name.toLowerCase()
+  } else {
+    // Journals view: getCurrentPage() returns null because multiple pages are shown.
+    // Fall back to the route for specific journal page navigation.
+    try {
+      const route = await (logseq.App as any).getCurrentRoute() as { page?: { name?: string } } | null
+      pageName = route?.page?.name?.toLowerCase()
+    } catch (_) {
+      // getCurrentRoute() throws on the main journals view — fall through to most-recent restore
+    }
+  }
 
-  // const page = await logseq.Editor.getPage(block.page.id)
-  // if (!page) return
-
-  const page = await logseq.Editor.getCurrentPage() as { name?: string } | null;
-  if (!page?.name) return;
-  const pageName = page.name.toLowerCase()
   console.log('Remember my block', 'restorePositionForCurrentPage', 'pageName', pageName)
 
   const map = await loadPositions()
-  const pos = map[pageKey(pageName)]
-  console.log('Remember my block, restorePositionForCurrentPage, position: ', pos)
-  // console.log('Remember my block, restorePositionForCurrentPage, position: ', JSON.stringify(pos))
+  let pos: LastPosition | undefined
+
+  if (pageName) {
+    pos = map[pageKey(pageName)]
+  } else {
+    // Main journals view — no single page, restore the most recently saved position
+    pos = Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)[0]
+  }
+
+  console.log('Remember my block', 'restorePositionForCurrentPage', 'pos', pos)
   if (!pos) return
 
   const block = await logseq.Editor.getBlock(pos.blockUuid)
-  console.log('Remember my block, restorePositionForCurrentPage, block: ', block)
+  console.log('Remember my block', 'restorePositionForCurrentPage', 'block', block)
   if (!block) return
-  console.log('Remember my block, restorePositionForCurrentPage, block: ', block)
 
   // await logseq.Editor.scrollToBlockInPage(pageName, block.uuid)
   await logseq.Editor.editBlock(block.uuid)
