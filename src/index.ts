@@ -4,7 +4,11 @@ import { logseqModelCheck } from './logseqModelCheck'
 import { settingsTemplate } from './settings'
 import { loadLogseqL10n } from './translations/l10nSetup'
 
-export const PLUGIN_ID = 'logseq-remeber-my-block' // Plugin ID
+const MAX_LAST_BLOCK_POSITIONS_MAP_ENTRIES = 50
+
+export const PLUGIN_ID = 'logseq-remeber-my-block'
+
+
 export const consoleText = PLUGIN_ID + " :: "
 
 // Variables (used within the same module, not exported)
@@ -76,6 +80,12 @@ async function recordPositionForBlock(uuid: string) {
 
   const map = await loadBlockPositions()
   console.log('Remember my block', 'recordPositionForBlock', 'map', map)
+
+  if (!(pageName in map) && Object.keys(map).length >= MAX_LAST_BLOCK_POSITIONS_MAP_ENTRIES) {
+    const leastRecentPageName = Object.values(map).sort((a, b) => a.updatedAt - b.updatedAt)[0].pageName
+    delete map[leastRecentPageName]
+  }
+
   map[pageName] = pos
   await saveBlockPositions(map)
 }
