@@ -22,15 +22,15 @@ export const replaceLogseqDbGraph = (dbGraph: boolean) => logseqDbGraph = dbGrap
 
 const STORAGE_KEY = 'last-block-position'
 
-type LastPosition = {
-  pageName: string
+type LastBlockPosition = {
   blockUuid: string
+  pageName: string
   charOffset: number
   updatedAt: number
 }
 
-type LastPositionMap = {
-  [pageName: string]: LastPosition
+type LastBlockPositionMap = {
+  [pageName: string]: LastBlockPosition
 }
 
 function debounce<T extends (...args: any[]) => void>(fn: T, delay = 1000) {
@@ -43,19 +43,17 @@ function debounce<T extends (...args: any[]) => void>(fn: T, delay = 1000) {
   }
 }
 
-// getStateFromStore camelCases keys with spaces (e.g. "weekly wins" → "weeklyWins"),
-// so we encode page names before using them as map keys.
-function pageKey(pageName: string): string {
-  return encodeURIComponent(pageName.toLowerCase())
+async function loadBlockPositions(): Promise<LastBlockPositionMap> {
+  const stored: string = await logseq.App.getStateFromStore(STORAGE_KEY)
+  if(!stored) {
+    return {}
+  }
+  const map = JSON.parse(stored) as LastBlockPositionMap
+  return map
 }
 
-async function loadPositions(): Promise<LastPositionMap> {
-  const stored = await logseq.App.getStateFromStore(STORAGE_KEY) as LastPositionMap | null
-  return stored ?? {}
-}
-
-async function savePositions(map: LastPositionMap) {
-  await logseq.App.setStateFromStore(STORAGE_KEY, map)
+async function saveBlockPositions(map: LastBlockPositionMap) {
+  await logseq.App.setStateFromStore(STORAGE_KEY, JSON.stringify(map))
 }
 
 async function recordPositionForBlock(uuid: string) {
@@ -69,17 +67,17 @@ async function recordPositionForBlock(uuid: string) {
 
   const pageName = page.name.toLowerCase()
   console.log('Remember my block', 'recordPositionForBlock', 'pageName', pageName)
-  const pos: LastPosition = {
+  const pos: LastBlockPosition = {
     pageName,
     blockUuid: block.uuid,
     charOffset: 0,
     updatedAt: Date.now(),
   }
 
-  const map = await loadPositions()
+  const map = await loadBlockPositions()
   console.log('Remember my block', 'recordPositionForBlock', 'map', map)
-  map[pageKey(pageName)] = pos
-  await savePositions(map)
+  map[pageName] = pos
+  await saveBlockPositions(map)
 }
 
 const debouncedRecordPosition = debounce(recordPositionForBlock, 500)
@@ -117,11 +115,11 @@ async function restorePositionForCurrentPage() {
 
   console.log('Remember my block', 'restorePositionForCurrentPage', 'pageName', pageName)
 
-  const map = await loadPositions()
-  let pos: LastPosition | undefined
+  const map = await loadBlockPositions()
+  let pos: LastBlockPosition | undefined
 
   if (pageName) {
-    pos = map[pageKey(pageName)]
+    pos = map[pageName]
   } else {
     // Main journals view — no single page, restore the most recently saved position
     pos = Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)[0]
