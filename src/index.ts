@@ -44,7 +44,7 @@ function debounce<T extends (...args: any[]) => void>(fn: T, delay = 1000) {
 }
 
 async function loadBlockPositions(): Promise<LastBlockPositionMap> {
-  const stored: string = await logseq.App.getStateFromStore(STORAGE_KEY)
+  const stored = await logseq.App.getStateFromStore(STORAGE_KEY);
   if(!stored) {
     return {}
   }
@@ -132,8 +132,10 @@ async function restorePositionForCurrentPage() {
   console.log('Remember my block', 'restorePositionForCurrentPage', 'block', block)
   if (!block) return
 
-  // await logseq.Editor.scrollToBlockInPage(pageName, block.uuid)
   await logseq.Editor.editBlock(block.uuid)
+
+  // await logseq.Editor.selectBlock(block.uuid)
+  // logseq.Editor.scrollToBlockInPage(pageName!, block.uuid)
 }
 
 
