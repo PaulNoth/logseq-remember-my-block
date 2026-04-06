@@ -1,6 +1,6 @@
 {
     "name": "logseq-remember-my-block",
-    "description": "description here",
+    "description": "Plugin that reopens pages at the block you last edited, instead of at the top",
     "repository": "https://github.com/PaulNoth/logseq-remember-my-block.git",
     "author": "Pavol Pidanič",
     "license": "MIT",
