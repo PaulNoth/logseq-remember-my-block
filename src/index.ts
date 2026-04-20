@@ -26,11 +26,14 @@ export const replaceLogseqDbGraph = (dbGraph: boolean) => logseqDbGraph = dbGrap
 
 const STORAGE_KEY = 'last-block-position'
 
+type BlockMode = 'edit' | 'view'
+
 type LastBlockPosition = {
   blockUuid: string
   pageName: string
   charOffset: number
   updatedAt: number
+  mode: BlockMode
 }
 
 type LastBlockPositionMap = {
@@ -60,11 +63,12 @@ async function saveBlockPositions(map: LastBlockPositionMap) {
   await logseq.App.setStateFromStore(STORAGE_KEY, JSON.stringify(map))
 }
 
-async function recordPositionForBlock(uuid: string) {
+async function recordPositionForBlock(uuid: string, mode: BlockMode = 'edit') {
+  console.log('Remember my block', 'recordPositionForBlock', 'uuid', uuid, mode)
   const block = await logseq.Editor.getBlock(uuid)
   if (!block) return
 
-  console.log('Remember my block', 'recordPositionForBlock', 'pageId', block.page.id)
+  console.log('Remember my block', 'recordPositionForBlock', 'pageId', block.page.id, mode)
 
   const page = await logseq.Editor.getPage(block.page.id)
   if (!page) return
@@ -76,6 +80,7 @@ async function recordPositionForBlock(uuid: string) {
     blockUuid: block.uuid,
     charOffset: 0,
     updatedAt: Date.now(),
+    mode,
   }
 
   const map = await loadBlockPositions()
@@ -102,8 +107,47 @@ function startBlockFocusTracking() {
 
     const blockEl = target.closest('[blockid]')
     const uuid = blockEl?.getAttribute('blockid')
-    if (uuid) debouncedRecordPosition(uuid)
+    if (uuid) debouncedRecordPosition(uuid, 'edit')
   }, true)
+}
+
+function startBlockSelectionTracking() {
+  const appContainer = top?.document.getElementById('app-container')
+  if (!appContainer) return
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') continue
+      const el = mutation.target as HTMLElement
+      if (!el.classList.contains('ls-block')) continue
+
+      if (el.classList.contains('selected')) {
+        const uuid = el.getAttribute('blockid')
+        if (uuid) debouncedRecordPosition(uuid, 'view')
+      }
+    }
+  })
+
+  observer.observe(appContainer, {
+    attributes: true,
+    attributeFilter: ['class'],
+    // attributeOldValue: true,
+    subtree: true,
+  })
+}
+
+async function scrollToAndSelectBlock(blockUuid: string) {
+  const id = 'block-content-' + blockUuid
+  const elem = top?.document.getElementById(id)
+  if (elem) {
+    elem.scrollIntoView({ behavior: 'smooth' })
+    await logseq.Editor.selectBlock(blockUuid)
+    //// @ts-expect-error
+		// window.parent.logseq.api.select_block(blockUuid);
+  } else {
+    // Block is inside a collapsed parent — editBlock expands and scrolls
+    await logseq.Editor.editBlock(blockUuid)
+  }
 }
 
 async function restorePositionForCurrentPage() {
@@ -142,10 +186,15 @@ async function restorePositionForCurrentPage() {
   console.log('Remember my block', 'restorePositionForCurrentPage', 'block', block)
   if (!block) return
 
-  await logseq.Editor.editBlock(block.uuid)
+  // Wait for DOM to render after the route change before attempting DOM access
+  await new Promise<void>((resolve) => setTimeout(resolve, 200))
 
-  // await logseq.Editor.selectBlock(block.uuid)
-  // logseq.Editor.scrollToBlockInPage(pageName!, block.uuid)
+  const mode: BlockMode = pos.mode ?? 'edit'
+  if (mode === 'view') {
+    await scrollToAndSelectBlock(block.uuid)
+  } else {
+    await logseq.Editor.editBlock(block.uuid)
+  }
 }
 
 
@@ -193,6 +242,7 @@ const main = async () => {
   console.log(t("Remember my block!!")) // test
 
   startBlockFocusTracking()
+  startBlockSelectionTracking()
 
   logseq.App.onRouteChanged(async () => {
     await restorePositionForCurrentPage()
