@@ -1,6 +1,6 @@
 {
     "name": "logseq-remember-my-block",
-    "description": "Plugin that reopens pages at the block you last edited, instead of at the top",
+    "description": "Plugin that remembers the block where you left off. When you reopen a page, it scrolls back to your last block — ready to edit or just to read. Supports edit and view modes.",
     "repository": "https://github.com/PaulNoth/logseq-remember-my-block.git",
     "author": "Pavol Pidanič",
     "license": "MIT",

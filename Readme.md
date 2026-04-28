@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A [Logseq](https://logseq.com) plugin that reopens pages at the block you last edited, instead of at the top.
+A [Logseq](https://logseq.com) plugin that remembers where you left off. When you reopen a page, it scrolls back to your last block — ready to edit or just to read.
 
 ---
 
@@ -28,22 +28,26 @@ A [Logseq](https://logseq.com) plugin that reopens pages at the block you last e
 
 ## How it works
 
-- Listens for `focusout` events on block editors to detect when you leave a block
-- Saves the last-edited block UUID per page
-- When you navigate to a page, automatically opens that block for editing right where you left off
+- Tracks the last visited block per page
+- Restores your position automatically when you navigate back to that page
+
+### Modes
+
+- **Edit mode** (default): opens the block for editing, placing the cursor at the end
+- **View mode**: scrolls to the block and highlights it without entering edit — good for resuming reading
 
 ### Journal pages
 
 Journal pages have partial support due to Logseq API limitations:
 
-- **Specific journal page** (navigated by clicking a date link): position is restored normally.
-- **Main Journals view** (the default multi-date scroll): Logseq does not expose which journal page is active, so the plugin restores the most recently edited block across *all* pages. In practice this is usually today's journal entry.
+- **Specific journal page** (reached by clicking a date link): position is restored normally
+- **Main Journals view**: NOT SUPPORTED — Logseq does not expose which journal page is currently active
 
 ### Storage
 
-The plugin remembers the last edited block for up to 50 pages. When you edit a block on a page already in the history, its entry is updated in place. When a new page is added and the limit is reached, the least recently edited page is evicted.
+The plugin tracks the last visited block for up to 50 pages. Revisiting a page updates its entry in place. When the limit is reached, the least recently visited page is dropped.
 
-> **Note:** The 50-page limit is currently in place to observe Logseq performance and may change.
+> **Note:** The 50-page limit is in place to observe Logseq performance and may change.
 
 ---
 
@@ -57,8 +61,6 @@ pnpm dev          # start dev server with hot reload
 pnpm build        # build for development
 pnpm prod         # build for production
 ```
-
-Releases are automated via [semantic-release](https://semantic-release.gitbook.io/) and triggered manually from the GitHub Actions tab.
 
 ---
 

@@ -142,8 +142,6 @@ async function scrollToAndSelectBlock(blockUuid: string) {
   if (elem) {
     elem.scrollIntoView({ behavior: 'smooth' })
     await logseq.Editor.selectBlock(blockUuid)
-    //// @ts-expect-error
-		// window.parent.logseq.api.select_block(blockUuid);
   } else {
     // Block is inside a collapsed parent — editBlock expands and scrolls
     await logseq.Editor.editBlock(blockUuid)
