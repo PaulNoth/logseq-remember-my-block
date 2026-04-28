@@ -33,7 +33,7 @@ A [Logseq](https://logseq.com) plugin that remembers where you left off. When yo
 
 ### Modes
 
-- **Edit mode** (default): opens the block for editing, placing the cursor at the end
+- **Edit mode**: opens the block for editing, placing the cursor at the end
 - **View mode**: scrolls to the block and highlights it without entering edit — good for resuming reading
 
 ### Journal pages
