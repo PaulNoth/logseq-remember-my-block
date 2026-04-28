@@ -149,20 +149,20 @@ async function scrollToAndSelectBlock(blockUuid: string) {
 }
 
 async function restorePositionForCurrentPage() {
-  let pageName: string | undefined
+  let pageName: string | null = null;
 
   const page = await logseq.Editor.getCurrentPage() as { name?: string } | null
   if (page?.name) {
     pageName = page.name.toLowerCase()
   } else {
-    // Journals view: getCurrentPage() returns null because multiple pages are shown.
-    // Fall back to the route for specific journal page navigation.
-    try {
-      const route = await (logseq.App as any).getCurrentRoute() as { page?: { name?: string } } | null
-      pageName = route?.page?.name?.toLowerCase()
-    } catch (_) {
-      // getCurrentRoute() throws on the main journals view — fall through to most-recent restore
-    }
+    // // Journals view: getCurrentPage() returns null because multiple pages are shown.
+    // // Fall back to the route for specific journal page navigation.
+    // try {
+    //   const route = await (logseq.App as any).getCurrentRoute() as { page?: { name?: string } } | null
+    //   pageName = route?.page?.name?.toLowerCase()
+    // } catch (_) {
+    // // getCurrentRoute() throws on the main journals view — fall through to most-recent restore
+    // }
   }
 
   console.log('Remember my block', 'restorePositionForCurrentPage', 'pageName', pageName)
