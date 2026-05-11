@@ -36,9 +36,11 @@ A [Logseq](https://logseq.com) plugin that remembers where you left off. When yo
 - **Edit mode**: opens the block for editing, placing the cursor at the end
 - **View mode**: scrolls to the block and highlights it without entering edit — good for resuming reading
 
-### Journal pages
+### Known limitations
 
-Journal pages have partial support due to Logseq API limitations:
+**Very long pages** are not supported. Logseq lazy-loads blocks on long pages, so a block that hasn't been rendered yet cannot be scrolled to or focused. The plugin will silently do nothing in that case.
+
+**Journal pages** have partial support due to Logseq API limitations:
 
 - **Specific journal page** (reached by clicking a date link): position is restored normally
 - **Main Journals view**: NOT SUPPORTED — Logseq does not expose which journal page is currently active
