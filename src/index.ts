@@ -1,27 +1,8 @@
 import '@logseq/libs' //https://plugins-doc.logseq.com/
-import { logseqModelCheck } from './logseqModelCheck'
-import { settingsTemplate } from './settings'
+
+const PLUGIN_ID = 'logseq-remeber-my-block'
 
 const MAX_LAST_BLOCK_POSITIONS_MAP_ENTRIES = 50
-
-export const PLUGIN_ID = 'logseq-remeber-my-block'
-
-
-export const consoleText = PLUGIN_ID + " :: "
-
-// Variables (used within the same module, not exported)
-let logseqVersion: string = "" // For version checking
-let logseqMdModel: boolean = false // For model checking
-let logseqDbGraph: boolean = false // For DB graph checking
-// Exported for external reference
-export const getLogseqVersion = () => logseqVersion // For version checking
-export const replaceLogseqVersion = (version: string) => logseqVersion = version
-export const booleanLogseqMdModel = () => logseqMdModel // For model checking
-export const replaceLogseqMdModel = (mdModel: boolean) => logseqMdModel = mdModel
-
-export const booleanDbGraph = () => logseqDbGraph // For DB graph checking
-export const replaceLogseqDbGraph = (dbGraph: boolean) => logseqDbGraph = dbGraph
-
 const STORAGE_KEY = 'last-block-position'
 
 type BlockMode = 'edit' | 'view'
@@ -62,17 +43,17 @@ async function saveBlockPositions(map: LastBlockPositionMap) {
 }
 
 async function recordPositionForBlock(uuid: string, mode: BlockMode = 'edit') {
-  console.log('Remember my block', 'recordPositionForBlock', 'uuid', uuid, mode)
+  console.log(PLUGIN_ID, 'recordPositionForBlock', 'uuid', uuid, mode)
   const block = await logseq.Editor.getBlock(uuid)
   if (!block) return
 
-  console.log('Remember my block', 'recordPositionForBlock', 'pageId', block.page.id, mode)
+  console.log(PLUGIN_ID, 'recordPositionForBlock', 'pageId', block.page.id, mode)
 
   const page = await logseq.Editor.getPage(block.page.id)
   if (!page) return
 
   const pageName = page.name.toLowerCase()
-  console.log('Remember my block', 'recordPositionForBlock', 'pageName', pageName)
+  console.log(PLUGIN_ID, 'recordPositionForBlock', 'pageName', pageName)
   const pos: LastBlockPosition = {
     pageName,
     blockUuid: block.uuid,
@@ -82,7 +63,7 @@ async function recordPositionForBlock(uuid: string, mode: BlockMode = 'edit') {
   }
 
   const map = await loadBlockPositions()
-  console.log('Remember my block', 'recordPositionForBlock', 'map', map)
+  console.log(PLUGIN_ID, 'recordPositionForBlock', 'map', map)
 
   if (!(pageName in map) && Object.keys(map).length >= MAX_LAST_BLOCK_POSITIONS_MAP_ENTRIES) {
     const leastRecentPageName = Object.values(map).sort((a, b) => a.updatedAt - b.updatedAt)[0].pageName
@@ -163,7 +144,7 @@ async function restorePositionForCurrentPage() {
     // }
   }
 
-  console.log('Remember my block', 'restorePositionForCurrentPage', 'pageName', pageName)
+  console.log(PLUGIN_ID, 'restorePositionForCurrentPage', 'pageName', pageName)
 
   const map = await loadBlockPositions()
   let pos: LastBlockPosition | undefined
@@ -175,11 +156,11 @@ async function restorePositionForCurrentPage() {
     pos = Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)[0]
   }
 
-  console.log('Remember my block', 'restorePositionForCurrentPage', 'pos', pos)
+  console.log(PLUGIN_ID, 'restorePositionForCurrentPage', 'pos', pos)
   if (!pos) return
 
   const block = await logseq.Editor.getBlock(pos.blockUuid)
-  console.log('Remember my block', 'restorePositionForCurrentPage', 'block', block)
+  console.log(PLUGIN_ID, 'restorePositionForCurrentPage', 'block', block)
   if (!block) return
 
   // Wait for DOM to render after the route change before attempting DOM access
@@ -193,35 +174,8 @@ async function restorePositionForCurrentPage() {
   }
 }
 
-
-/* main */
-/**
- * Initializes the Logseq plugin by performing the following steps:
- * 1. Checks the Logseq model type (Markdown or Database) and determines the graph type.
- * 2. Loads the user's preferred language and date format for localization (L10N).
- * 3. Initializes the user settings schema based on the detected Logseq model and graph type.
- * 4. Displays the settings UI if user settings are not yet configured.
- * 5. Shows a localized success message in the Logseq UI upon successful initialization.
- *
- * @async
- * @returns {Promise<void>} A promise that resolves when initialization is complete.
- */
 const main = async () => {
-
-  // Execute Logseq model check
-  const [logseqDbGraph, logseqMdModel] = await logseqModelCheck()
-  /**
-    * logseqMdModel===true: MD model
-    + logseqMdModel===false: DB model
-    + logseqMdModel===false && logseqDbGraph===false: file-based graph
-    * logseqMdModel===false && logseqDbGraph===true: DB graph
-    */
-
-  // User Settings
-  logseq.useSettingsSchema(settingsTemplate(logseqDbGraph, logseqMdModel)) // Initialize user settings schema
-  if (!logseq.settings) setTimeout(() => logseq.showSettingsUI(), 300) // Show settings UI if not configured yet
-
-  console.log("Remember my block", "initialized") // test
+  console.log(PLUGIN_ID, "initialized")
 
   startBlockFocusTracking()
   startBlockSelectionTracking()
