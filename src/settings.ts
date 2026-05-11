@@ -13,7 +13,7 @@ const settingKeys = {
 
 
 /**
- * Generates a settings schema array for Logseq plugin settings UI, 
+ * Generates a settings schema array for Logseq plugin settings UI,
  * based on the current graph and model type.
  *
  * @param logseqDbGraph - Indicates if the current graph is a DB-based graph (`true`) or file-based (`false`).
@@ -24,10 +24,10 @@ const settingKeys = {
  * - If `logseqMdModel` is `true`, returns settings for the file-based model.
  * - If `logseqMdModel` is `false` and `logseqDbGraph` is `false`, returns settings for a file-based graph in DB model.
  * - If `logseqMdModel` is `false` and `logseqDbGraph` is `true`, returns settings for a DB graph.
- * 
+ *
  * In each case, a heading and common settings are included, and additional settings are conditionally added
  * if the `toggle001` setting is enabled.
- * 
+ *
  * Also displays a message in the Logseq UI and logs the detected model/graph type to the console.
  */
 export const settingsTemplate = (logseqDbGraph: boolean, logseqMdModel: boolean): SettingSchemaDesc[] => {

@@ -1,8 +1,6 @@
 import '@logseq/libs' //https://plugins-doc.logseq.com/
-import { t } from "logseq-l10n" //https://github.com/sethyuan/logseq-l10n
 import { logseqModelCheck } from './logseqModelCheck'
 import { settingsTemplate } from './settings'
-import { loadLogseqL10n } from './translations/l10nSetup'
 
 const MAX_LAST_BLOCK_POSITIONS_MAP_ENTRIES = 50
 
@@ -219,25 +217,11 @@ const main = async () => {
     * logseqMdModel===false && logseqDbGraph===true: DB graph
     */
 
-  // Get user setting language and set up L10N
-  const { preferredLanguage, preferredDateFormat } = await loadLogseqL10n()
-  // preferredLanguage: user setting language
-  // preferredDateFormat: user setting date format
-
   // User Settings
   logseq.useSettingsSchema(settingsTemplate(logseqDbGraph, logseqMdModel)) // Initialize user settings schema
   if (!logseq.settings) setTimeout(() => logseq.showSettingsUI(), 300) // Show settings UI if not configured yet
 
-  // end initialization
-
-
-
-  /**
-   * logseq-l10n message sample
-   * translations/ja.json
-   */
-  logseq.UI.showMsg(t("Remember my block!!"), "success", { timeout: 6000 }) //test
-  console.log(t("Remember my block!!")) // test
+  console.log("Remember my block", "initialized") // test
 
   startBlockFocusTracking()
   startBlockSelectionTracking()
