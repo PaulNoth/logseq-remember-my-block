@@ -43,17 +43,13 @@ async function saveBlockPositions(map: LastBlockPositionMap) {
 }
 
 async function recordPositionForBlock(uuid: string, mode: BlockMode = 'edit') {
-  console.log(PLUGIN_ID, 'recordPositionForBlock', 'uuid', uuid, mode)
   const block = await logseq.Editor.getBlock(uuid)
   if (!block) return
-
-  console.log(PLUGIN_ID, 'recordPositionForBlock', 'pageId', block.page.id, mode)
 
   const page = await logseq.Editor.getPage(block.page.id)
   if (!page) return
 
   const pageName = page.name.toLowerCase()
-  console.log(PLUGIN_ID, 'recordPositionForBlock', 'pageName', pageName)
   const pos: LastBlockPosition = {
     pageName,
     blockUuid: block.uuid,
@@ -63,7 +59,6 @@ async function recordPositionForBlock(uuid: string, mode: BlockMode = 'edit') {
   }
 
   const map = await loadBlockPositions()
-  console.log(PLUGIN_ID, 'recordPositionForBlock', 'map', map)
 
   if (!(pageName in map) && Object.keys(map).length >= MAX_LAST_BLOCK_POSITIONS_MAP_ENTRIES) {
     const leastRecentPageName = Object.values(map).sort((a, b) => a.updatedAt - b.updatedAt)[0].pageName
@@ -144,8 +139,6 @@ async function restorePositionForCurrentPage() {
     // }
   }
 
-  console.log(PLUGIN_ID, 'restorePositionForCurrentPage', 'pageName', pageName)
-
   const map = await loadBlockPositions()
   let pos: LastBlockPosition | undefined
 
@@ -156,11 +149,10 @@ async function restorePositionForCurrentPage() {
     pos = Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)[0]
   }
 
-  console.log(PLUGIN_ID, 'restorePositionForCurrentPage', 'pos', pos)
   if (!pos) return
 
   const block = await logseq.Editor.getBlock(pos.blockUuid)
-  console.log(PLUGIN_ID, 'restorePositionForCurrentPage', 'block', block)
+
   if (!block) return
 
   // Wait for DOM to render after the route change before attempting DOM access
