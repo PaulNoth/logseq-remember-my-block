@@ -6,7 +6,13 @@ A [Logseq](https://logseq.com) plugin that remembers where you left off. When yo
 
 ---
 
-<!-- Add a demo GIF here showing: navigate away from a page mid-edit, come back, cursor jumps back to that block -->
+**Plugin disabled** — navigating back to a page starts at the top:
+
+![Plugin disabled](Remember%20my%20block%20-%20plugin%20disabled.gif)
+
+**Plugin enabled** — navigating back restores your last position:
+
+![Plugin enabled](Remember%20my%20block%20-%20plugin%20enabled.gif)
 
 ---
 
