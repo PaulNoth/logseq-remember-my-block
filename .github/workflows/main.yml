@@ -1,0 +1,43 @@
+name: Build Logseq theme
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_NAME: logseq-plugin-remember-my-block
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Package plugin
+        run: |
+          mkdir ${{ env.PLUGIN_NAME }}
+          cp -r dist/ ${{ env.PLUGIN_NAME }}/
+          cp package.json ${{ env.PLUGIN_NAME }}/
+          cp Readme.md ${{ env.PLUGIN_NAME }}
+          cp icon.png ${{ env.PLUGIN_NAME }} || true
+          zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.PLUGIN_NAME }}.zip
+            package.json
+          generate_release_notes: true
+          draft: false
