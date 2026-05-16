@@ -8,11 +8,11 @@ A [Logseq](https://logseq.com) plugin that remembers where you left off. When yo
 
 **Plugin disabled** — navigating back to a page starts at the top:
 
-![Plugin disabled](Remember%20my%20block%20-%20plugin%20disabled.gif)
+![Plugin disabled](Remember_my_block-plugin_disabled.gif)
 
 **Plugin enabled** — navigating back restores your last position:
 
-![Plugin enabled](Remember%20my%20block%20-%20plugin%20enabled.gif)
+![Plugin enabled](Remember_my_block-plugin_enabled.gif)
 
 ---
 
