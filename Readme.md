@@ -61,13 +61,13 @@ The plugin tracks the last visited block for up to 50 pages. Revisiting a page u
 
 ## Development
 
-**Prerequisites:** Node.js, pnpm
+**Prerequisites:** Node.js
 
 ```sh
-pnpm install      # install dependencies
-pnpm dev          # start dev server with hot reload
-pnpm build        # build for development
-pnpm prod         # build for production
+npm install      # install dependencies
+npm dev          # start dev server with hot reload
+npm build        # build for development
+npm prod         # build for production
 ```
 
 ---
