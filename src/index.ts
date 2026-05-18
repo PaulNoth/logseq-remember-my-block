@@ -72,7 +72,7 @@ async function recordPositionForBlock(uuid: string, mode: BlockMode = 'edit') {
 const debouncedRecordPosition = debounce(recordPositionForBlock, 500)
 
 function startBlockFocusTracking() {
-  const editorDoc = top?.document
+  const editorDoc = parent?.document
   if (!editorDoc) return
 
   editorDoc.addEventListener('focusout', (e) => {
@@ -86,7 +86,7 @@ function startBlockFocusTracking() {
 }
 
 function startBlockSelectionTracking() {
-  const appContainer = top?.document.getElementById('app-container')
+  const appContainer = parent?.document.getElementById('app-container')
   if (!appContainer) return
 
   const observer = new MutationObserver((mutations) => {
@@ -112,7 +112,7 @@ function startBlockSelectionTracking() {
 
 async function scrollToAndSelectBlock(blockUuid: string) {
   const id = 'block-content-' + blockUuid
-  const elem = top?.document.getElementById(id)
+  const elem = parent?.document.getElementById(id)
   if (elem) {
     elem.scrollIntoView({ behavior: 'smooth' })
     await logseq.Editor.selectBlock(blockUuid)
