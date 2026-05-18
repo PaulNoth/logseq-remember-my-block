@@ -1,6 +1,6 @@
 import '@logseq/libs' //https://plugins-doc.logseq.com/
 
-const PLUGIN_ID = 'logseq-remeber-my-block'
+const PLUGIN_ID = 'logseq-plugin-remeber-my-block'
 
 const MAX_LAST_BLOCK_POSITIONS_MAP_ENTRIES = 50
 const STORAGE_KEY = 'last-block-position'
