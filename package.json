@@ -11,7 +11,6 @@
         "icon": "./icon.svg",
         "main": "./dist/index.html"
     },
-    "private": true,
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build --mode=dev",
