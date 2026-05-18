@@ -4,7 +4,7 @@
     "repository": "https://github.com/PaulNoth/logseq-remember-my-block.git",
     "author": "Pavol Pidanič",
     "license": "MIT",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "logseq": {
         "id": "logseq-plugin-remember-my-block",
         "title": "Remember my block",
