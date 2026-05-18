@@ -9,7 +9,7 @@
         "id": "logseq-plugin-remember-my-block",
         "title": "Remember my block",
         "icon": "./icon.svg",
-        "main": "./dist/index.html"
+        "main": "./index.html"
     },
     "private": true,
     "scripts": {
