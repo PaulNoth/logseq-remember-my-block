@@ -4,12 +4,12 @@
     "repository": "https://github.com/PaulNoth/logseq-remember-my-block.git",
     "author": "Pavol Pidanič",
     "license": "MIT",
-    "version": "1.0.11",
+    "version": "1.0.12",
+    "main": "index.html",
     "logseq": {
         "id": "logseq-plugin-remember-my-block",
         "title": "Remember my block",
-        "icon": "./icon.svg",
-        "main": "./index.html"
+        "icon": "./icon.svg"
     },
     "scripts": {
         "dev": "vite",
