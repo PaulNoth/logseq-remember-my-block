@@ -30,7 +30,7 @@ jobs:
           mkdir ${{ env.PLUGIN_NAME }}
           cp -r dist/ ${{ env.PLUGIN_NAME }}/
           cp package.json ${{ env.PLUGIN_NAME }}/
-          cp Readme.md ${{ env.PLUGIN_NAME }}
+          cp README.md ${{ env.PLUGIN_NAME }}
           cp Remember_my_block-plugin_disabled.gif ${{ env.PLUGIN_NAME }}
           cp Remember_my_block-plugin_enabled.gif ${{ env.PLUGIN_NAME }}
           cp LICENSE ${{ env.PLUGIN_NAME }}
