@@ -39,8 +39,10 @@ A [Logseq](https://logseq.com) plugin that remembers where you left off. When yo
 
 ### Modes
 
-- **Edit mode**: opens the block for editing, placing the cursor at the end
-- **View mode**: scrolls to the block and highlights it without entering edit — good for resuming reading
+The mode is selected automatically based on how you left the page:
+
+- **Edit mode**: if you were editing a block, the plugin reopens it for editing and places the cursor at the **end of the block**
+- **View mode**: if you were just reading, the plugin scrolls to the block and highlights it without entering edit
 
 ### Known limitations
 
@@ -54,6 +56,8 @@ A [Logseq](https://logseq.com) plugin that remembers where you left off. When yo
 ### Storage
 
 The plugin tracks the last visited block for up to 50 pages. Revisiting a page updates its entry in place. When the limit is reached, the least recently visited page is dropped.
+
+> **Note:** Stored positions are kept in memory and cleared when you close the app.
 
 > **Note:** The 50-page limit is in place to observe Logseq performance and may change.
 
@@ -69,6 +73,12 @@ npm dev          # start dev server with hot reload
 npm build        # build for development
 npm prod         # build for production
 ```
+
+---
+
+## Feedback & Improvements
+
+Found a bug or have a feature request? Open an issue on [GitHub](https://github.com/PaulNoth/logseq-remember-my-block/issues) — all feedback is welcome.
 
 ---
 
